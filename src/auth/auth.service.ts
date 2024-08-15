@@ -1,25 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaClient } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
+import { UserRepository } from '../telegram/repositories/user.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly user: UserRepository,
     private readonly jwtService: JwtService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
-    const prisma = new PrismaClient();
-    const user = await prisma.user.findFirstOrThrow({
-      where: {
-        username: username,
-      },
-    });
-
-    console.log(user);
+    const user = await this.user.findOne({ where: { username } });
 
     if (user && (await bcrypt.compare(password, user.password_hash))) {
       const { password_hash, ...result } = user;
@@ -30,8 +22,9 @@ export class AuthService {
 
   async login(user: any) {
     const payload = { username: user.username, sub: user.id };
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: await this.jwtService.signAsync(payload),
     };
   }
 }

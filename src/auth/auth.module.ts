@@ -2,20 +2,23 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
-import { PrismaModule } from '../prisma/prisma.module';
 import { AuthController } from './auth.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from '../telegram/models/user.model';
+import { UserRepository } from '../telegram/repositories/user.repository';
+import { ConfigModule } from '../configs/config.module';
+import { JwtConfig } from '../configs/jwt.config';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([User]),
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '60m' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useExisting: JwtConfig,
     }),
-    PrismaModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, PrismaService],
+  providers: [AuthService, UserRepository],
 })
 export class AuthModule {}

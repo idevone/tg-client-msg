@@ -1,17 +1,23 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TelegramModule } from './telegram/telegram.module';
-import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
-import { AuthController } from './auth/auth.controller';
-import { PrismaServiceModule } from './prisma-service/prisma-service.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { JwtService } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from './configs/config.module';
+import { PostgresConfig } from './configs/postgres.config';
+import { TelegramModule } from './telegram/telegram.module';
 
 @Module({
-  imports: [TelegramModule, AuthModule, PrismaServiceModule, PrismaModule],
-  controllers: [AppController, AuthController],
-  providers: [AppService, AuthService, JwtService],
+  imports: [
+    ConfigModule,
+    AuthModule,
+    TelegramModule,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useExisting: PostgresConfig,
+    }),
+  ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

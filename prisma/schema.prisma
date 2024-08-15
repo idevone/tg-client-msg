@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int      @id @default(autoincrement())
+  username          String
+  password_hash     String
+  authKey           String?  @unique
+  accessToken       String?  @unique
+  role              String   @default("Admin")
+  telegram_accounts String?  @unique
+  status            String   @default("Active")
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now())
+
+  @@map("user")
+}
+
+model telegram_account {
+  id             Int      @id @default(autoincrement())
+  telegram_id    String   @unique
+  username       String?
+  first_name     String?
+  last_name      String?
+  phone          String   @unique
+  session_string String?  @unique
+  api_id         String   @unique
+  api_hash       String   @unique
+  users          String
+  created_at     DateTime @default(now())
+  updated_at     DateTime @default(now())
+}

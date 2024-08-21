@@ -6,8 +6,9 @@ import {
 } from '@nestjs/common';
 import { UserRepository } from './repositories/user.repository';
 import { TelegramAccountRepository } from './repositories/telegram-account.repository';
-import { TelegramClient } from 'telegram';
+import { TelegramClient, Api } from 'telegram';
 import { StringSession } from 'telegram/sessions';
+import { returnBigInt } from 'telegram/Helpers';
 
 @Injectable()
 export class TelegramService {
@@ -47,16 +48,20 @@ export class TelegramService {
       if (!client) {
         throw new NotFoundException('Client not found');
       }
+      const bigIntId = returnBigInt(chatId);
 
-      const messages = await client.getMessages(chatId, {
-        limit: 50, // например, получение последних 50 сообщений
+      const dialogs = await client.getDialogs({});
+      const channel = dialogs.find((d) => bigIntId.equals(d.id));
+      const messages = await client.getMessages(channel.entity, {
+        limit: 100,
+        reverse: true,
       });
 
       const serializedMessages = messages.map((msg) => ({
         id: msg.id,
         text: msg.message,
         date: msg.date,
-        senderId: msg.fromId,
+        senderId: msg.fromId ?? msg.peerId,
       }));
 
       await client.disconnect();

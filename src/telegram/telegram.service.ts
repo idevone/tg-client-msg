@@ -80,7 +80,12 @@ export class TelegramService {
         throw new NotFoundException('Client not found');
       }
 
-      await client.sendMessage(chatId, {
+      const bigIntId = returnBigInt(chatId);
+
+      const dialogs = await client.getDialogs({});
+      const channel = dialogs.find((d) => bigIntId.equals(d.id));
+
+      await client.sendMessage(channel.entity, {
         message: text,
       });
 
